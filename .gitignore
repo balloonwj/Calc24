@@ -1,0 +1,6 @@
+.vs/
+Calc24Server/CMakeCache.txt
+Calc24Server/CMakeFiles/
+Calc24Server/Makefile
+Calc24Server/calc24Server
+Calc24Server/cmake_install.cmake

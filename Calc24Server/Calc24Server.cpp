@@ -14,5 +14,7 @@ int main()
         return 0;
     }
 
+    tcpServer.start();
+
     return 1;
 }
