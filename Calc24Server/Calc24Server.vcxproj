@@ -131,6 +131,7 @@
     <ClCompile Include="TCPServer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="protocol.h" />
     <ClInclude Include="TCPServer.h" />
   </ItemGroup>
   <ItemGroup>
