@@ -128,9 +128,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Calc24Server.cpp" />
+    <ClCompile Include="Player.cpp" />
     <ClCompile Include="TCPServer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Player.h" />
     <ClInclude Include="protocol.h" />
     <ClInclude Include="TCPServer.h" />
   </ItemGroup>

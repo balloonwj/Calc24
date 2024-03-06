@@ -8,14 +8,8 @@
 #include <unordered_map>
 #include <vector>
 
-#define NO_PLAYER_ON_SEAT -1
-
-struct Desk {
-    int id;
-    int clientfd1{ NO_PLAYER_ON_SEAT };
-    int clientfd2{ NO_PLAYER_ON_SEAT };
-    int clientfd3{ NO_PLAYER_ON_SEAT };
-};
+class Player;
+class Desk;
 
 class TCPServer
 {
@@ -33,25 +27,17 @@ public:
 
     void start();
 
-    void clientThreadFunc(int clientfd);
+    void clientThreadFunc(std::shared_ptr<Player> spPlayer, std::shared_ptr<Desk> spDesk);
 
 
     //新玩家加入
     void newPlayerJoined(int clientfd);
 
-    //发送玩家欢迎消息
-    bool sendWelcomeMsg(int clientfd);
-
-    //发牌
-    bool initCards(int clientfd);
-
-    //处理客户端消息
-    void handleClientMsg(int clientfd);
+    //生成待发的牌
+    void generateCards(const std::shared_ptr<Desk>& spDesk);
 
     //转发消息给其他客户端
     void sendMsgToOtherClients(int msgOwnerClientfd, const std::string& msg);
-
-    bool sendMsgToClient(int clientfd, const std::string& msg);
 
 
 private:
@@ -59,16 +45,12 @@ private:
 
     //TODO: 未来考虑是否可以将std::shared_ptr改成unique_ptr
     std::unordered_map<int, std::shared_ptr<std::thread>>   m_clientfdToThreads;
-    std::mutex                                              m_mutexForClientfdToThreads;
+    //std::mutex                                              m_mutexForClientfdToThreads;
 
-    std::unordered_map<int, std::string>                    m_clientfdToRecvBuf;
+    //key=>clientfd, value=>std::shared_ptr<Player>
+    std::unordered_map<int, std::shared_ptr<Player>>        m_players;
+    std::mutex                                              m_mutexForPlayers;
 
-    std::unordered_map<int, std::shared_ptr<std::mutex>>    m_clientfdToMutex;
 
-    std::vector<Desk>                                       m_deskInfo;
-
-    //key=>clientfd, value=>clientfd所对应的玩家是否可以进行发牌了，true表示已经可以发牌，false表示玩家数量不够，不能发牌
-    std::unordered_map<int, std::atomic<bool>>              m_clientfdToDeskReady;
-    std::mutex                                              m_mutexForClientfdToDeskReady;
-
+    std::vector<std::shared_ptr<Desk>>                      m_deskInfo;
 };
