@@ -14,6 +14,7 @@ Player::Player(int clientfd) : m_clientfd(clientfd) {
 }
 
 Player::~Player() {
+    std::cout << "close client fd[" << m_clientfd << "]" << std::endl;
     ::close(m_clientfd);
 }
 
@@ -47,7 +48,7 @@ bool Player::sendCards() {
     std::shared_ptr<Desk> spDesk = m_spDesk.lock();
     if (spDesk == nullptr) {
         //玩家处于不在任何桌子上的情况
-        return true;
+        return false;
     }
 
     int cardsStrLen = static_cast<int>(spDesk->sendCards.size());
@@ -78,13 +79,12 @@ bool Player::recvData() {
     }
 
     if (clientMsgLength < 0) {
-        if (errno != EWOULDBLOCK && errno != EAGAIN) {
+        if (errno == EWOULDBLOCK || errno == EAGAIN || errno == EINTR) {
             //连接真的出错了
-            return false;
+            return true;
         }
         else {
-            sleep(1);
-            return true;
+            return false;
         }
     }
 
@@ -95,6 +95,9 @@ bool Player::recvData() {
 
 //ABC
 void Player::handleClientMsg(std::string& currentMsg) {
+    if (m_recvBuf.empty())
+        return;
+
     size_t index = 0;
     int lastPackagePos = 0;
 

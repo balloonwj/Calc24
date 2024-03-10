@@ -66,39 +66,45 @@ void TCPServer::clientThreadFunc(std::shared_ptr<Player> spPlayer, std::shared_p
     int clientfd = spPlayer->getClientfd();
     std::cout << "new client connected, clientfd: " << clientfd << std::endl;
 
-    if (!spPlayer->sendWelcomeMsg()) {
-        return;
+    if (spPlayer->sendWelcomeMsg()) {
+        bool exit = false;
+        while (!exit) {
+            if (spPlayer->getReady() && !spPlayer->isCardsSent()) {
+                if (spPlayer->sendCards()) {
+                    std::cout << "sendCards to clientfd[" << clientfd << "] successfully" << std::endl;
+                }
+                else {
+                    std::cout << "sendCards to clientfd[" << clientfd << "] failed" << std::endl;
+                    exit = true;
+                    continue;
+                }
+            }// end if
+
+            if (!spPlayer->recvData()) {
+                std::cout << "recv failed, clientfd[" << clientfd << "]" << std::endl;
+                exit = true;
+                continue;
+            }// end if
+
+            while (true) {
+                std::string aMsg;
+                spPlayer->handleClientMsg(aMsg);
+                if (!aMsg.empty()) {
+                    std::cout << "client[" << clientfd << "] Says: " << aMsg << std::endl;
+
+                    sendMsgToOtherClients(clientfd, aMsg);
+                }
+                else {
+                    break;
+                }
+            }// end inner-while
+        }// end outer-while
     }
 
-    while (true) {
-        if (spPlayer->getReady() && !spPlayer->isCardsSent()) {
-            if (spPlayer->sendCards()) {
-                std::cout << "sendCards to clientfd[" << clientfd << "] successfully" << std::endl;
-            }
-            else {
-                std::cout << "sendCards to clientfd[" << clientfd << "] failed" << std::endl;
-                return;
-            }
-        }// end if
-
-        if (!spPlayer->recvData()) {
-            std::cout << "recv failed, clientfd[" << clientfd << "]" << std::endl;
-            return;
-        }// end if
-
-        while (true) {
-            std::string aMsg;
-            spPlayer->handleClientMsg(aMsg);
-            if (!aMsg.empty()) {
-                std::cout << "client[" << clientfd << "] Says: " << aMsg << std::endl;
-
-                sendMsgToOtherClients(clientfd, aMsg);
-            }
-            else {
-                break;
-            }
-        }// end inner-while
-    }// end outer-while
+    //清理clientfd
+    std::lock_guard<std::mutex> scopedLock(m_mutexForPlayers);
+    m_players.erase(clientfd);
+    m_clientfdToThreads.erase(clientfd);
 }
 
 void TCPServer::newPlayerJoined(int clientfd) {
@@ -146,16 +152,19 @@ void TCPServer::newPlayerJoined(int clientfd) {
         std::shared_ptr<Player> sp1 = spCurrentFullDesk->spPlayer1.lock();
         if (sp1 != nullptr) {
             sp1->setReady(true);
+            sp1->setDesk(spCurrentFullDesk);
         }
 
         std::shared_ptr<Player> sp2 = spCurrentFullDesk->spPlayer2.lock();
         if (sp2 != nullptr) {
             sp2->setReady(true);
+            sp2->setDesk(spCurrentFullDesk);
         }
 
         std::shared_ptr<Player> sp3 = spCurrentFullDesk->spPlayer3.lock();
         if (sp3 != nullptr) {
             sp3->setReady(true);
+            sp3->setDesk(spCurrentFullDesk);
         }
 
 
@@ -163,6 +172,7 @@ void TCPServer::newPlayerJoined(int clientfd) {
     }
 
     auto spThread = std::make_shared<std::thread>(std::bind(&TCPServer::clientThreadFunc, this, spCurrentPlayer, spCurrentFullDesk));
+    spThread->detach();
     m_clientfdToThreads[clientfd] = std::move(spThread);
 
     m_players[clientfd] = std::move(spCurrentPlayer);
