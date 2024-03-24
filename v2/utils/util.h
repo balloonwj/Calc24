@@ -1,0 +1,4 @@
+﻿#pragma once
+
+
+void crash();
