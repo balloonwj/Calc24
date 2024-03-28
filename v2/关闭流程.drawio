@@ -1,0 +1,111 @@
+<mxfile host="app.diagrams.net" modified="2024-03-28T15:15:12.310Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36" etag="GGvlK6ATeC2L6xvY2eql" version="24.1.0" type="device">
+  <diagram name="第 1 页" id="xDM-EKU5AndDG_H9gXc1">
+    <mxGraphModel dx="1050" dy="530" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="REH2oqvID-A6MZE5QQHm-1" value="Server" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="150" y="250" width="70" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="REH2oqvID-A6MZE5QQHm-2" value="Session" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="270" y="150" width="110" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="REH2oqvID-A6MZE5QQHm-3" value="Session" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="270" y="210" width="110" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="REH2oqvID-A6MZE5QQHm-4" value="Session" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="270" y="280" width="110" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="REH2oqvID-A6MZE5QQHm-5" value="Session" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="270" y="350" width="110" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="REH2oqvID-A6MZE5QQHm-6" value="" style="shape=curlyBracket;whiteSpace=wrap;html=1;rounded=1;labelPosition=left;verticalLabelPosition=middle;align=right;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="240" y="170" width="20" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="REH2oqvID-A6MZE5QQHm-7" value="Connection" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="440" y="150" width="100" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="REH2oqvID-A6MZE5QQHm-8" value="Connection" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="440" y="220" width="100" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="REH2oqvID-A6MZE5QQHm-9" value="Connection" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="440" y="280" width="100" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="REH2oqvID-A6MZE5QQHm-10" value="Connection" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="440" y="350" width="100" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="REH2oqvID-A6MZE5QQHm-11" value="" style="endArrow=none;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1" source="REH2oqvID-A6MZE5QQHm-5">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="390" y="370" as="sourcePoint" />
+            <mxPoint x="440" y="370" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="REH2oqvID-A6MZE5QQHm-14" value="" style="endArrow=none;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="REH2oqvID-A6MZE5QQHm-4">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="390" y="350" as="sourcePoint" />
+            <mxPoint x="440" y="300" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="REH2oqvID-A6MZE5QQHm-15" value="" style="endArrow=none;html=1;rounded=0;exitX=1;exitY=0.75;exitDx=0;exitDy=0;" edge="1" parent="1" source="REH2oqvID-A6MZE5QQHm-3">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="390" y="290" as="sourcePoint" />
+            <mxPoint x="440" y="240" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="REH2oqvID-A6MZE5QQHm-16" value="" style="endArrow=none;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="REH2oqvID-A6MZE5QQHm-2">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="390" y="220" as="sourcePoint" />
+            <mxPoint x="440" y="170" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="REH2oqvID-A6MZE5QQHm-17" value="对端关闭连接" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="670" y="70" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="REH2oqvID-A6MZE5QQHm-18" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.431;exitY=1.067;exitDx=0;exitDy=0;exitPerimeter=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="REH2oqvID-A6MZE5QQHm-17" target="REH2oqvID-A6MZE5QQHm-7">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="720" y="210" as="sourcePoint" />
+            <mxPoint x="770" y="160" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="726" y="170" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="REH2oqvID-A6MZE5QQHm-20" value="打算关闭" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="REH2oqvID-A6MZE5QQHm-18">
+          <mxGeometry x="-0.0174" y="-2" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="REH2oqvID-A6MZE5QQHm-19" value="" style="curved=1;endArrow=classic;html=1;rounded=0;exitX=0.58;exitY=-0.06;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="REH2oqvID-A6MZE5QQHm-7" target="REH2oqvID-A6MZE5QQHm-2">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="410" y="120" as="sourcePoint" />
+            <mxPoint x="460" y="70" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="460" y="120" />
+              <mxPoint x="410" y="70" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="REH2oqvID-A6MZE5QQHm-21" value="需要先关闭Session" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="REH2oqvID-A6MZE5QQHm-19">
+          <mxGeometry x="0.1532" y="12" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="REH2oqvID-A6MZE5QQHm-22" value="" style="curved=1;endArrow=classic;html=1;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" target="REH2oqvID-A6MZE5QQHm-1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="330" y="140" as="sourcePoint" />
+            <mxPoint x="270" y="80" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="270" y="130" />
+              <mxPoint x="220" y="80" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="REH2oqvID-A6MZE5QQHm-23" value="先从Server对象的集合中移除Session对象" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="REH2oqvID-A6MZE5QQHm-22">
+          <mxGeometry x="-0.3213" y="14" relative="1" as="geometry">
+            <mxPoint x="1" as="offset" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

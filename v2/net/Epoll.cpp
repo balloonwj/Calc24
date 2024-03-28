@@ -5,6 +5,8 @@
 #include <sys/epoll.h>
 #include <unistd.h>
 
+#include <iostream>
+
 #include "util.h"
 
 Epoll::Epoll() {
@@ -195,4 +197,6 @@ void Epoll::unregisterAllEvents(int fd, IEventDispatcher* eventDispatcher) {
         //TODO: 打印错误日志
         crash();
     }
+
+    std::cout << "removed fd[" << fd << "] from epoll" << std::endl;
 }

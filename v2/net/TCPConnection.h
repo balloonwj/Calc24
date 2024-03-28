@@ -7,13 +7,14 @@
 #include "IEventDispatcher.h"
 #include "EventLoop.h"
 
+class TCPConnection;
+
 //ReadCallback如果返回false，表示上层业务逻辑认为处理出错，希望关闭连接
 using ReadCallback = std::function<void(ByteBuffer&)>;
 using WriteCallback = std::function<void()>;
-using CloseCallback = std::function<void()>;
+using CloseCallback = std::function<void(const std::shared_ptr<TCPConnection>&)>;
 
-
-class TCPConnection : public IEventDispatcher {
+class TCPConnection : public IEventDispatcher, public std::enable_shared_from_this<TCPConnection> {
 public:
     TCPConnection(int clientfd, const std::shared_ptr<EventLoop>& spEventLoop);
     virtual ~TCPConnection();

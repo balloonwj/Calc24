@@ -4,12 +4,15 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#include <iostream>
+
 TCPConnection::TCPConnection(int clientfd, const std::shared_ptr<EventLoop>& spEventLoop)
     : m_fd(clientfd), m_spEventLoop(spEventLoop) {
-
+    std::cout << "TCPConnection::ctor " << m_fd << std::endl;
 }
 
 TCPConnection::~TCPConnection() {
+    std::cout << "TCPConnection::dtor " << m_fd << std::endl;
     ::close(m_fd);
 }
 
@@ -125,9 +128,13 @@ void TCPConnection::onWrite() {
 }
 
 void TCPConnection::onClose() {
-    m_closeCallback();
+    std::cout << "TCPConnection::onClose" << m_fd << std::endl;
 
     unregisterAllEvents();
+
+    //Calc24Session::onClose -> Calc24Server::onDisconnected -> 从map中移除Calc24Session对象
+    //->析构Calc24Session->先析构TCPConnection->关闭fd
+    m_closeCallback(shared_from_this());
 }
 
 void TCPConnection::enableReadWrite(bool read, bool write) {

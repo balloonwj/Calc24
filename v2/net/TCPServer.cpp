@@ -1,6 +1,7 @@
 ﻿#include "TCPServer.h"
 
 #include <functional>
+#include <iostream>
 
 bool TCPServer::init(int32_t threadNum, const std::string& ip, uint16_t port) {
     m_threadPool.start(threadNum);
@@ -30,13 +31,22 @@ void TCPServer::start() {
     m_baseEventLoop.run();
 }
 
+//TCPServer::m_disconnectedCallback->Calc24Server::onDisconnected
+//TCPConnection::m_closeCallback->TCPServer::m_disconnectedCallback
 void TCPServer::onAccept(int clientfd) {
     std::shared_ptr<EventLoop> spEventLoop = m_threadPool.getNextEventLoop();
     auto spTCPConnection = std::make_shared<TCPConnection>(clientfd, spEventLoop);
+    std::cout << "TCPServer::onAccept " << clientfd << std::endl;
+    //spTCPConnection->setCloseCallback(std::bind(&TCPServer::onDisconnected, this, std::placeholders::_1));
     spTCPConnection->startRead();
 
+    //m_connectedCallback->Calc24Server::onConnected
     m_connectedCallback(spTCPConnection);
 
     //m_connections[clientfd] = std::move(spTCPConnection);
+}
+
+void TCPServer::onDisconnected(const std::shared_ptr<TCPConnection>& spConn) {
+    m_disconnectedCallback(spConn);
 }
 

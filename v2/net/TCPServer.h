@@ -10,7 +10,7 @@
 #include "TCPConnection.h"
 
 using onConnectedCallback = std::function<void(std::shared_ptr<TCPConnection>& spConn)>;
-using onDisconnectedCallback = std::function<void(std::shared_ptr<TCPConnection>& spConn)>;
+using onDisconnectedCallback = std::function<void(const std::shared_ptr<TCPConnection>& spConn)>;
 
 class TCPServer {
 public:
@@ -22,6 +22,8 @@ public:
 
     void start();
 
+    //m_connectedCallback需要设置为指向业务的连接回调，
+    //以让业务在有新连接来临时做一些操作的机会
     void setConnectedCallback(onConnectedCallback&& callback) {
         m_connectedCallback = std::move(callback);
     }
@@ -32,6 +34,7 @@ public:
 
 private:
     void onAccept(int clientfd);
+    void onDisconnected(const std::shared_ptr<TCPConnection>& spConn);
 
 
 private:

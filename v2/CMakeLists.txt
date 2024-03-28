@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 
 project (CALC24)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -g -Wall -O0 -Wno-unused-variable -pthread")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y -g -Wall -O0 -Wno-unused-variable -pthread")
 
 include_directories(
     utils/

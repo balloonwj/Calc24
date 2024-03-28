@@ -1,11 +1,16 @@
 ﻿#include "Calc24Server.h"
 
+#include <iostream>
+
+#include "Calc24Session.h"
+
 bool Calc24Server::init(int32_t threadNum, const std::string& ip/* = ""*/, uint16_t port/* = 8888*/) {
     //m_tcpServer.setConnectedCallback([](std::shared_ptr<TCPConnection>& spConn) -> void {
 
     //    });
 
     m_tcpServer.setConnectedCallback(std::bind(&Calc24Server::onConnected, this, std::placeholders::_1));
+    //m_tcpServer.setDisconnectedCallback(std::bind(&Calc24Server::onDisconnected, this, std::placeholders::_1));
 
     if (!m_tcpServer.init(5, ip, port)) {
         return false;
@@ -21,12 +26,24 @@ void Calc24Server::uninit() {
 }
 
 void Calc24Server::onConnected(std::shared_ptr<TCPConnection>& spConn) {
-    auto spCalc24Session = std::make_shared<Calc24Session>(std::move(spConn));
+    //删除无效的Calc24Session
+    m_pendingToDeleteSessions.clear();
+
+    auto spCalc24Session = std::make_shared<Calc24Session>(this, std::move(spConn));
     spCalc24Session->sendWelcomeMsg();
 
-    m_sessions.push_back(std::move(spCalc24Session));
+    //std::pair<int, std::shared_ptr<Calc24Session>>
+    m_sessions.emplace(spCalc24Session->getID(), std::move(spCalc24Session));
 }
 
-void Calc24Server::onDisconnected(std::shared_ptr<TCPConnection>& spConn) {
+void Calc24Server::onDisconnected(int32_t id) {
+    auto iter = m_sessions.find(id);
+    if (iter != m_sessions.end()) {
+        auto pendingToDeleteSession = iter->second;
+        m_pendingToDeleteSessions.push_back(std::move(pendingToDeleteSession));
 
+        m_sessions.erase(iter);
+
+        std::cout << "Calc24Server::onDisconnected" << std::endl;
+    }
 }
