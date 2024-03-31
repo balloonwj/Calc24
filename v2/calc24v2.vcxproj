@@ -33,6 +33,7 @@
     <ClInclude Include="net\TCPConnection.h" />
     <ClInclude Include="net\TCPServer.h" />
     <ClInclude Include="net\ThreadPool.h" />
+    <ClInclude Include="net\WakeupEventDispatcher.h" />
     <ClInclude Include="utils\util.h" />
   </ItemGroup>
   <ItemGroup>
@@ -48,7 +49,11 @@
     <ClCompile Include="net\TCPConnection.cpp" />
     <ClCompile Include="net\TCPServer.cpp" />
     <ClCompile Include="net\ThreadPool.cpp" />
+    <ClCompile Include="net\WakeupEventDispatcher.cpp" />
     <ClCompile Include="utils\util.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="CMakeLists.txt" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

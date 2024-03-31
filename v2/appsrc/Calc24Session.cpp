@@ -2,8 +2,11 @@
 
 #include <functional>
 #include <iostream>
+#include <sstream>
 
 #include "Calc24Server.h"
+
+#define MAX_MSG_LENGTH 64
 
 Calc24Session::Calc24Session(Calc24Server* pServer, std::shared_ptr<TCPConnection>&& spConn) :
     m_pServer(pServer),
@@ -24,18 +27,16 @@ Calc24Session::~Calc24Session() {
 
 void Calc24Session::onRead(ByteBuffer& recvBuf) {
     while (true) {
-        if (recvBuf.remaining() <= sizeof(MsgHeader)) {
+        DecodePackageResult result = decodePackage(recvBuf);
+        if (result == DecodePackageResult::DecodePackageWantMoreData)
+            return;
+
+        if (result == DecodePackageResult::DecodePackageFailed) {
+            forceClose();
             return;
         }
 
-        MsgHeader header;
-        recvBuf.peek(reinterpret_cast<char*>(&header), sizeof(MsgHeader));
-
-        if (header.packageSize <= recvBuf.remaining()) {
-            if (!decodePackage(recvBuf, header)) {
-                return;
-            }
-        }
+        //继续下一个包的解析
     }
 }
 
@@ -53,9 +54,17 @@ void Calc24Session::onClose() {
     m_pServer->onDisconnected(m_id);
 }
 
+void Calc24Session::sendMsg(const std::string& msg) {
+    m_spConn->send(msg);
+}
+
 void Calc24Session::sendWelcomeMsg() {
-    const std::string& welcomeMsg = "Welcome to Calc24 Game.";
+    const std::string& welcomeMsg = "Welcome to Calc24 Game.\n";
     m_spConn->send(welcomeMsg);
+}
+
+void Calc24Session::forceClose() {
+    m_spConn->onClose();
 }
 
 int Calc24Session::generateID() {
@@ -65,15 +74,32 @@ int Calc24Session::generateID() {
     return resultID;
 }
 
-bool Calc24Session::decodePackage(ByteBuffer& recvBuf, const MsgHeader& header) {
-    if (static_cast<MsgType>(header.msgType) == MsgType::MsgTypeWelcome) {
-        //WelcomeMsg welcomeMsg;
-        //recvBuf.retrieve(reinterpret_cast<char*>(&welcomeMsg), sizeof(welcomeMsg));
+DecodePackageResult Calc24Session::decodePackage(ByteBuffer& recvBuf) {
+    size_t positionLF = recvBuf.findLF();
+    if (positionLF == std::string::npos) {
+        if (recvBuf.remaining() > MAX_MSG_LENGTH)
+            return DecodePackageResult::DecodePackageFailed;
 
-        //处理welcomeMsg
-
-        return true;
+        return DecodePackageResult::DecodePackageWantMoreData;
     }
 
-    return false;
+    std::string currentPackage;
+    recvBuf.retrieve(currentPackage, positionLF + 1);
+
+    processPackage(currentPackage);
+
+    return DecodePackageResult::DecodePackageSuccess;
+}
+
+bool Calc24Session::processPackage(const std::string& package) {
+    std::cout << "client[" << m_id << "] says: " << package << std::endl;
+
+    std::ostringstream msgWithPrefix;
+    msgWithPrefix << "client[";
+    msgWithPrefix << m_id;
+    msgWithPrefix << "] Says: ";
+    msgWithPrefix << package;
+    m_pServer->sendAll(msgWithPrefix.str(), false, m_id);
+
+    return true;
 }

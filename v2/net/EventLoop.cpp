@@ -3,9 +3,16 @@
 #include <memory>
 #include <vector>
 
+#include <sys/eventfd.h>
+
 #include "Select.h"
 #include "Poll.h"
 #include "Epoll.h"
+
+EventLoop::~EventLoop() {
+    if (m_pWakeupEventDispatcher)
+        delete m_pWakeupEventDispatcher;
+}
 
 bool EventLoop::init(IOMultiplexType type/* = IOMultiplexType::IOMultiplexEpoll*/) {
     if (type == IOMultiplexType::IOMultiplexTypeSelect) {
@@ -15,6 +22,13 @@ bool EventLoop::init(IOMultiplexType type/* = IOMultiplexType::IOMultiplexEpoll*
     } else {
         m_spIOMultiplex = std::make_unique<Epoll>();
     }
+
+    if (!createWakeupfd())
+        return false;
+
+    m_pWakeupEventDispatcher = new WakeupEventDispatcher(m_wakeupfd);
+
+    registerReadEvent(m_wakeupfd, m_pWakeupEventDispatcher, true);
 
     m_running = true;
 
@@ -38,8 +52,26 @@ void EventLoop::run() {
         //3. 处理读写事件
         //for ()
 
-        //4. 利用唤醒fd机制处理自定义事件 
+        //4. 利用唤醒fd机制处理自定义事件
+        doOtherTasks();
     }
+}
+
+void EventLoop::addTask(CustomTask&& task) {
+    {
+        std::lock_guard<std::mutex> scopedLock(m_mutexTasks);
+        m_customTasks.push_back(std::move(task));
+    }
+
+    m_pWakeupEventDispatcher->wakeup();
+}
+
+void EventLoop::setThreadID(const std::thread::id& threadID) {
+    m_threadID = threadID;
+}
+
+const std::thread::id& EventLoop::getThreadID() const {
+    return m_threadID;
 }
 
 void EventLoop::registerReadEvent(int fd, IEventDispatcher* eventDispatcher, bool readEvent) {
@@ -60,4 +92,25 @@ void EventLoop::unregisterWriteEvent(int fd, IEventDispatcher* eventDispatcher, 
 
 void EventLoop::unregisterAllEvents(int fd, IEventDispatcher* eventDispatcher) {
     m_spIOMultiplex->unregisterAllEvents(fd, eventDispatcher);
+}
+
+bool EventLoop::createWakeupfd() {
+    m_wakeupfd = ::eventfd(0, EFD_NONBLOCK);
+    if (m_wakeupfd == -1)
+        return false;
+
+    return true;
+}
+
+void EventLoop::doOtherTasks() {
+    std::vector<CustomTask> tasks;
+
+    {
+        std::lock_guard<std::mutex> scopedLock(m_mutexTasks);
+        tasks.swap(m_customTasks);
+    }
+
+    for (auto& task : tasks) {
+        task();
+    }
 }

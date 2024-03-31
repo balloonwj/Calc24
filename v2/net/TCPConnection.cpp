@@ -4,6 +4,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#include <functional>
 #include <iostream>
 
 TCPConnection::TCPConnection(int clientfd, const std::shared_ptr<EventLoop>& spEventLoop)
@@ -61,7 +62,13 @@ bool TCPConnection::send(const char* buf, int bufLen) {
 
 
 bool TCPConnection::send(const std::string& buf) {
-    return send(buf.c_str(), buf.length());
+    //当前调用线程和当前TCPConnection属于同一个线程，则直接发送；
+    //反之，交给TCPConnection属于同所属的线程发送
+    if (isCallableInOwnerThread()) {
+        return send(buf.c_str(), buf.length());
+    } else {
+        m_spEventLoop->addTask(std::bind(&TCPConnection::send, this, buf));
+    }
 }
 
 void TCPConnection::onRead() {
@@ -128,7 +135,7 @@ void TCPConnection::onWrite() {
 }
 
 void TCPConnection::onClose() {
-    std::cout << "TCPConnection::onClose" << m_fd << std::endl;
+    std::cout << "TCPConnection::onClose, " << m_fd << std::endl;
 
     unregisterAllEvents();
 
@@ -165,4 +172,8 @@ void TCPConnection::unregisterAllEvents() {
     m_spEventLoop->unregisterAllEvents(m_fd, this);
 
     m_registerWriteEvent = false;
+}
+
+bool TCPConnection::isCallableInOwnerThread() {
+    return std::this_thread::get_id() == m_spEventLoop->getThreadID();
 }

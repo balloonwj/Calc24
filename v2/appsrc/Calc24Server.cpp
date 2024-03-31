@@ -25,6 +25,19 @@ void Calc24Server::uninit() {
     m_tcpServer.uninit();
 }
 
+void Calc24Server::sendAll(const std::string& msg, bool includeSelf, int32_t id) {
+    for (const auto& iter : m_sessions) {
+        if (!includeSelf) {
+            if (iter.second->getID() == id) {
+                continue;
+            }
+        }
+        //iter指向的std::pair<int32_t, std::shared_ptr<Calc24Session>>
+        //iter.second指向std::shared_ptr<Calc24Session>
+        iter.second->sendMsg(msg);
+    }
+}
+
 void Calc24Server::onConnected(std::shared_ptr<TCPConnection>& spConn) {
     //删除无效的Calc24Session
     m_pendingToDeleteSessions.clear();

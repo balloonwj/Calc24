@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+锘縞make_minimum_required(VERSION 3.20)
 
 project (CALC24)
 
@@ -23,6 +23,7 @@ net/Select.cpp
 net/TCPConnection.cpp
 net/TCPServer.cpp
 net/ThreadPool.cpp
+net/WakeupEventDispatcher.cpp
 )
 
 set(util_srcs
@@ -37,5 +38,5 @@ appsrc/main.cpp
 
 
 add_executable(calc24Srv ${net_srcs} ${util_srcs} ${app_srcs})
-#光包含库目录是没用的，还必须使用TARGET_LINK_LIBRARIES链接该库
+#鍏夊寘鍚簱鐩綍鏄病鐢ㄧ殑锛岃繕蹇呴』浣跨敤TARGET_LINK_LIBRARIES閾炬帴璇ュ簱
 TARGET_LINK_LIBRARIES(calc24Srv)

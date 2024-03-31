@@ -10,6 +10,12 @@
 
 class Calc24Server;
 
+enum class DecodePackageResult {
+    DecodePackageSuccess,
+    DecodePackageFailed,
+    DecodePackageWantMoreData
+};
+
 class Calc24Session : private std::enable_shared_from_this<Calc24Session> {
 public:
     Calc24Session(Calc24Server* pServer, std::shared_ptr<TCPConnection>&& spConn);
@@ -25,14 +31,20 @@ public:
         return m_id;
     }
 
+    void sendMsg(const std::string& msg);
+
     //业务代码
     void sendWelcomeMsg();
+
+    void forceClose();
 
 private:
     static int generateID();
 
 private:
-    bool decodePackage(ByteBuffer& recvBuf, const MsgHeader& header);
+    DecodePackageResult decodePackage(ByteBuffer& recvBuf);
+
+    bool processPackage(const std::string& package);
 
 private:
     int32_t                             m_id;

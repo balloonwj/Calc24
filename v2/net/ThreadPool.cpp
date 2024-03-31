@@ -19,6 +19,7 @@ void ThreadPool::start(int32_t threadNum/* = 1*/) {
     for (int32_t i = 0; i < threadNum; ++i) {
         //pthread_create
         auto spThread = std::make_shared<std::thread>(std::bind(&ThreadPool::threadFunc, this, i));
+        m_eventLoops[i]->setThreadID(spThread->get_id());
         m_threads.push_back(std::move(spThread));
     }
 }

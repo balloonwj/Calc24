@@ -45,11 +45,15 @@ public:
 
     virtual void enableReadWrite(bool read, bool write) override;
 
+
+
 private:
     void registerWriteEvent();
     void unregisterWriteEvent();
 
     void unregisterAllEvents();
+
+    bool isCallableInOwnerThread();
 
 private:
     int                         m_fd;

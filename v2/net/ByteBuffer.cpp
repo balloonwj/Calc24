@@ -58,6 +58,10 @@ void ByteBuffer::erase(size_t bufLen/* = 0*/) {
     m_internalBuf.erase(0, bufLen);
 }
 
+size_t ByteBuffer::findLF() {
+    return m_internalBuf.find("\n");
+}
+
 size_t ByteBuffer::remaining() {
     return m_internalBuf.length();
 }

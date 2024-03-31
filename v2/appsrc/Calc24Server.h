@@ -2,6 +2,8 @@
 
 #include "TCPServer.h"
 
+#include <string>
+
 #include "Calc24Session.h"
 
 class Calc24Server final {
@@ -11,6 +13,8 @@ public:
 
     bool init(int32_t threadNum, const std::string& ip = "", uint16_t port = 8888);
     void uninit();
+
+    void sendAll(const std::string& msg, bool includeSelf, int32_t id);
 
     void onDisconnected(int32_t id);
 

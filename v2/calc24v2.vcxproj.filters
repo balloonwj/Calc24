@@ -58,6 +58,9 @@
     <ClInclude Include="utils\util.h">
       <Filter>utils</Filter>
     </ClInclude>
+    <ClInclude Include="net\WakeupEventDispatcher.h">
+      <Filter>net</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="appsrc\Calc24Server.cpp">
@@ -99,5 +102,11 @@
     <ClCompile Include="utils\util.cpp">
       <Filter>utils</Filter>
     </ClCompile>
+    <ClCompile Include="net\WakeupEventDispatcher.cpp">
+      <Filter>net</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="CMakeLists.txt" />
   </ItemGroup>
 </Project>

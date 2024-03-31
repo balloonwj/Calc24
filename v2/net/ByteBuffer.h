@@ -29,6 +29,9 @@ public:
 
     void erase(size_t bufLen = 0);
 
+    //寻找\n
+    size_t findLF();
+
     size_t  remaining();
 
     void clear();
