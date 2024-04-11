@@ -5,7 +5,7 @@
 class WakeupEventDispatcher : public IEventDispatcher {
 public:
     WakeupEventDispatcher(int fd);
-    ~WakeupEventDispatcher();
+    virtual ~WakeupEventDispatcher();
 
 public:
     virtual void onRead() override;

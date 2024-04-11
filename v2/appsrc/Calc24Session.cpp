@@ -63,6 +63,12 @@ void Calc24Session::sendWelcomeMsg() {
     m_spConn->send(welcomeMsg);
 }
 
+void Calc24Session::notifyUserHandup() {
+    m_spConn->getEventLoop()->addTimer(5000, true, 0, [this](int64_t timerID) -> void {
+        m_spConn->send("please handup...\n");
+        });
+}
+
 void Calc24Session::forceClose() {
     m_spConn->onClose();
 }
@@ -92,7 +98,7 @@ DecodePackageResult Calc24Session::decodePackage(ByteBuffer& recvBuf) {
 }
 
 bool Calc24Session::processPackage(const std::string& package) {
-    std::cout << "client[" << m_id << "] says: " << package << std::endl;
+    std::cout << "fd " << m_spConn->fd() << ", client[" << m_id << "] says: " << package << std::endl;
 
     std::ostringstream msgWithPrefix;
     msgWithPrefix << "client[";

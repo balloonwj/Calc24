@@ -1,6 +1,7 @@
 ﻿#include "WakeupEventDispatcher.h"
 
 #include <errno.h>
+#include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
@@ -19,8 +20,8 @@ void WakeupEventDispatcher::onRead() {
         return;
 
     //收数据
-    char dummyData;
-    int n = ::recv(m_wakeupfd, static_cast<char*>(&dummyData), sizeof(dummyData), 0);
+    uint64_t dummyData;
+    int n = ::read(m_wakeupfd, static_cast<void*>(&dummyData), sizeof(dummyData));
     if (n != sizeof(dummyData)) {
         std::cout << "WakeupEventDispatcher::onRead failed, errno " << errno << std::endl;
     } else {
@@ -34,11 +35,12 @@ void WakeupEventDispatcher::enableReadWrite(bool read, bool write) {
 }
 
 void WakeupEventDispatcher::wakeup() {
-    char dummyData = 0;
-    int n = ::send(m_wakeupfd, static_cast<const void*>(&dummyData), sizeof(dummyData), 0);
+    uint64_t dummyData = 0;
+    //对于eventfd，至少要写入8个字节
+    int n = ::write(m_wakeupfd, static_cast<const void*>(&dummyData), static_cast<size_t>(sizeof(dummyData)));
     if (n != sizeof(dummyData)) {
-        std::cout << "WakeupEventDispatcher::wakeup failed, errno " << errno << std::endl;
+        std::cout << "WakeupEventDispatcher::wakeup failed, errno " << errno << " " << strerror(errno) << std::endl;
     } else {
-        std::cout << "WakeupEventDispatcher::wakeup successfullt, m_wakeupfd " << m_wakeupfd << std::endl;
+        std::cout << "WakeupEventDispatcher::wakeup successfully, m_wakeupfd " << m_wakeupfd << std::endl;
     }
 }

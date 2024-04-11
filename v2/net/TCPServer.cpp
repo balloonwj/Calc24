@@ -36,7 +36,9 @@ void TCPServer::start() {
 void TCPServer::onAccept(int clientfd) {
     std::shared_ptr<EventLoop> spEventLoop = m_threadPool.getNextEventLoop();
     auto spTCPConnection = std::make_shared<TCPConnection>(clientfd, spEventLoop);
-    std::cout << "TCPServer::onAccept " << clientfd << std::endl;
+    std::cout << "TCPServer::onAccept "
+        << clientfd << " threadID "
+        << spEventLoop->getThreadID() << std::endl;
     //spTCPConnection->setCloseCallback(std::bind(&TCPServer::onDisconnected, this, std::placeholders::_1));
     spTCPConnection->startRead();
 

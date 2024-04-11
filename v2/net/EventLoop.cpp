@@ -40,27 +40,29 @@ void EventLoop::run() {
 
     while (m_running) {
         //1. 检测和处理定时器事件
+        checkAndDoTimers();
+
         // 
         //2. 使用select/poll/epoll等IO复用函数检测一组socket的读写事件
         // 
         eventDispatchers.clear();
         m_spIOMultiplex->poll(500000, eventDispatchers);
+
+        //3. 处理读写事件
         for (size_t i = 0; i < eventDispatchers.size(); ++i) {
             eventDispatchers[i]->onRead();
             eventDispatchers[i]->onWrite();
         }
-        //3. 处理读写事件
-        //for ()
 
         //4. 利用唤醒fd机制处理自定义事件
         doOtherTasks();
     }
 }
 
-void EventLoop::addTask(CustomTask&& task) {
+void EventLoop::addTask(const CustomTask& task) {
     {
         std::lock_guard<std::mutex> scopedLock(m_mutexTasks);
-        m_customTasks.push_back(std::move(task));
+        m_customTasks.push_back(task);
     }
 
     m_pWakeupEventDispatcher->wakeup();
@@ -94,12 +96,55 @@ void EventLoop::unregisterAllEvents(int fd, IEventDispatcher* eventDispatcher) {
     m_spIOMultiplex->unregisterAllEvents(fd, eventDispatcher);
 }
 
+int64_t EventLoop::addTimer(int32_t intervalMs, bool repeated, int64_t repeatedCount, TimerTask timerTask) {
+    //TODO: 对传入的参数进行有效性校验
+
+    auto spTimer = std::make_shared<Timer>(intervalMs,
+        repeated, repeatedCount, timerTask);
+
+    {
+        //std::lock_guard<std::mutex> scopedLock(m_mutexTimers);
+        std::lock_guard<decltype(m_mutexTimers)> scopedLock(m_mutexTimers);
+        m_timers.push_back(spTimer);
+    }
+
+
+    return spTimer->id();
+}
+
+bool EventLoop::removeTimer(int64_t timerID) {
+    {
+        //std::lock_guard<std::mutex> scopedLock(m_mutexTimers);
+        std::lock_guard<decltype(m_mutexTimers)> scopedLock(m_mutexTimers);
+        for (auto iter = m_timers.begin(); iter != m_timers.end(); iter++) {
+            if ((*iter)->id() == timerID) {
+                m_timers.erase(iter);
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
 bool EventLoop::createWakeupfd() {
     m_wakeupfd = ::eventfd(0, EFD_NONBLOCK);
     if (m_wakeupfd == -1)
         return false;
 
     return true;
+}
+
+void EventLoop::checkAndDoTimers() {
+    int64_t nowMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch()).count();;
+
+    std::lock_guard<decltype(m_mutexTimers)> scopedLock(m_mutexTimers);
+    for (auto iter = m_timers.begin(); iter != m_timers.end(); iter++) {
+        if (nowMs >= (*iter)->nextTriggeredTimeMs()) {
+            (*iter)->doTimer((*iter)->id());
+        }
+    }
 }
 
 void EventLoop::doOtherTasks() {
@@ -111,6 +156,6 @@ void EventLoop::doOtherTasks() {
     }
 
     for (auto& task : tasks) {
-        task();
+        task("");
     }
 }

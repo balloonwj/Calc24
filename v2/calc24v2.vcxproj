@@ -28,11 +28,13 @@
     <ClInclude Include="net\EventLoop.h" />
     <ClInclude Include="net\IEventDispatcher.h" />
     <ClInclude Include="net\IOMultiplex.h" />
+    <ClInclude Include="net\ITimerService.h" />
     <ClInclude Include="net\Poll.h" />
     <ClInclude Include="net\Select.h" />
     <ClInclude Include="net\TCPConnection.h" />
     <ClInclude Include="net\TCPServer.h" />
     <ClInclude Include="net\ThreadPool.h" />
+    <ClInclude Include="net\Timer.h" />
     <ClInclude Include="net\WakeupEventDispatcher.h" />
     <ClInclude Include="utils\util.h" />
   </ItemGroup>
@@ -49,6 +51,7 @@
     <ClCompile Include="net\TCPConnection.cpp" />
     <ClCompile Include="net\TCPServer.cpp" />
     <ClCompile Include="net\ThreadPool.cpp" />
+    <ClCompile Include="net\Timer.cpp" />
     <ClCompile Include="net\WakeupEventDispatcher.cpp" />
     <ClCompile Include="utils\util.cpp" />
   </ItemGroup>

@@ -45,6 +45,8 @@ void Calc24Server::onConnected(std::shared_ptr<TCPConnection>& spConn) {
     auto spCalc24Session = std::make_shared<Calc24Session>(this, std::move(spConn));
     spCalc24Session->sendWelcomeMsg();
 
+    spCalc24Session->notifyUserHandup();
+
     //std::pair<int, std::shared_ptr<Calc24Session>>
     m_sessions.emplace(spCalc24Session->getID(), std::move(spCalc24Session));
 }

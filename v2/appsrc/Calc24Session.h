@@ -36,6 +36,8 @@ public:
     //业务代码
     void sendWelcomeMsg();
 
+    void notifyUserHandup();
+
     void forceClose();
 
 private:

@@ -45,7 +45,13 @@ public:
 
     virtual void enableReadWrite(bool read, bool write) override;
 
+    int fd() const {
+        return m_fd;
+    }
 
+    std::shared_ptr<EventLoop> getEventLoop() const {
+        return m_spEventLoop;
+    }
 
 private:
     void registerWriteEvent();

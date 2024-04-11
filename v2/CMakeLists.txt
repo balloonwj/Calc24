@@ -24,6 +24,7 @@ net/TCPConnection.cpp
 net/TCPServer.cpp
 net/ThreadPool.cpp
 net/WakeupEventDispatcher.cpp
+net/Timer.cpp
 )
 
 set(util_srcs

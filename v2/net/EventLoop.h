@@ -11,6 +11,8 @@
 
 #include "IEventDispatcher.h"
 #include "IOMultiplex.h"
+#include "ITimerService.h"
+#include "Timer.h"
 #include "WakeupEventDispatcher.h"
 
 using CustomTask = std::function<bool(const std::string&)>;
@@ -21,7 +23,7 @@ enum class IOMultiplexType {
     IOMultiplexEpoll
 };
 
-class EventLoop final {
+class EventLoop final : public ITimerService {
 public:
     EventLoop() = default;
     ~EventLoop();
@@ -31,7 +33,7 @@ public:
 
     void run();
 
-    void addTask(CustomTask&& task);
+    void addTask(const CustomTask& task);
 
     void setThreadID(const std::thread::id& threadID);
     const std::thread::id& getThreadID() const;
@@ -42,8 +44,14 @@ public:
     void unregisterWriteEvent(int fd, IEventDispatcher* eventDispatcher, bool writeEvent);
     void unregisterAllEvents(int fd, IEventDispatcher* eventDispatcher);
 
+    //定时器相关接口
+    virtual int64_t addTimer(int32_t intervalMs, bool repeated, int64_t repeatedCount, TimerTask timerTask) override;
+    virtual bool removeTimer(int64_t timerID) override;
+
 private:
     bool createWakeupfd();
+
+    void checkAndDoTimers();
 
     void doOtherTasks();
 
@@ -59,4 +67,7 @@ private:
 
     std::vector<CustomTask>                 m_customTasks;
     std::mutex                              m_mutexTasks;
+
+    std::vector<std::shared_ptr<Timer>>     m_timers;
+    std::mutex                              m_mutexTimers;
 };

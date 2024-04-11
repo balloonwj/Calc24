@@ -65,9 +65,22 @@ bool TCPConnection::send(const std::string& buf) {
     //当前调用线程和当前TCPConnection属于同一个线程，则直接发送；
     //反之，交给TCPConnection属于同所属的线程发送
     if (isCallableInOwnerThread()) {
+        std::cout << "TCPConnection::send "
+            << buf.length()
+            << " bytes, fd "
+            << m_fd
+            << ", threadID "
+            << m_spEventLoop->getThreadID()
+            << std::endl;
         return send(buf.c_str(), buf.length());
     } else {
-        m_spEventLoop->addTask(std::bind(&TCPConnection::send, this, buf));
+        m_spEventLoop->addTask(std::bind(static_cast<bool(TCPConnection::*)(const std::string&)>(&TCPConnection::send), this, buf));
+        //这里无法编译通过的原因是：
+        //std::bind绑定的参数是不定参数，接受0~n个参数，由于TCPConnection::send存在多个，
+        //所以编译器无法判断要选个哪种形式进行绑定
+        //m_spEventLoop->addTask(std::bind(&TCPConnection::send, this, buf));
+
+        return true;
     }
 }
 
