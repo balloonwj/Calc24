@@ -10,6 +10,10 @@
 
 class Calc24Server;
 
+#define SESSION_STATUS_CONNECTED   0 //未举手状态
+#define SESSION_STATUS_HANDUP      1 //举手状态
+#define SESSION_STATUS_CARDSINITED 2 //发完牌，游戏状态
+
 enum class DecodePackageResult {
     DecodePackageSuccess,
     DecodePackageFailed,
@@ -38,7 +42,14 @@ public:
 
     void notifyUserHandup();
 
+    //给玩家发牌
+    void initCards();
+
     void forceClose();
+
+    bool isHandup() const {
+        return m_status == SESSION_STATUS_HANDUP;
+    }
 
 private:
     static int generateID();
@@ -48,8 +59,13 @@ private:
 
     bool processPackage(const std::string& package);
 
+    bool processChatMsg(const std::string& package);
+    bool processCmd(const std::string& package);
+
 private:
     int32_t                             m_id;
     Calc24Server* m_pServer;
     std::shared_ptr<TCPConnection>      m_spConn;
+
+    std::atomic<int8_t>                 m_status{ SESSION_STATUS_CONNECTED };
 };

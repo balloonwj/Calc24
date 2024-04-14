@@ -12,9 +12,19 @@ bool Calc24Server::init(int32_t threadNum, const std::string& ip/* = ""*/, uint1
     m_tcpServer.setConnectedCallback(std::bind(&Calc24Server::onConnected, this, std::placeholders::_1));
     //m_tcpServer.setDisconnectedCallback(std::bind(&Calc24Server::onDisconnected, this, std::placeholders::_1));
 
-    if (!m_tcpServer.init(5, ip, port)) {
+    if (!m_tcpServer.init(1, ip, port)) {
         return false;
     }
+
+    m_checkHandupTimerID = m_tcpServer.getBaseEventLoop().addTimer(1000, true, 0, [this](int64_t timerID) -> void {
+        //每隔1秒检测是否有足够数量的玩家已经准备好
+        for (auto& iter : m_sessions) {
+            if (iter.second->isHandup()) {
+                iter.second->initCards();
+            }
+        }
+        });
+
 
     m_tcpServer.start();
 
@@ -22,6 +32,10 @@ bool Calc24Server::init(int32_t threadNum, const std::string& ip/* = ""*/, uint1
 }
 
 void Calc24Server::uninit() {
+    if (m_checkHandupTimerID > 0) {
+        m_tcpServer.getBaseEventLoop().removeTimer(m_checkHandupTimerID);
+    }
+
     m_tcpServer.uninit();
 }
 

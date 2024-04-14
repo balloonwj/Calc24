@@ -44,7 +44,7 @@ void Acceptor::onRead() {
 
 bool Acceptor::startListen(const std::string& ip/* = ""*/, uint16_t port/* = 8888*/) {
     //1.创建一个侦听socket
-    m_listenfd = ::socket(AF_INET, SOCK_STREAM, 0);
+    m_listenfd = ::socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
     if (m_listenfd == -1)
         return false;
 

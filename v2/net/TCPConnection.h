@@ -54,6 +54,8 @@ public:
     }
 
 private:
+    bool sendInternal(const char* buf, int bufLen);
+
     void registerWriteEvent();
     void unregisterWriteEvent();
 

@@ -14,7 +14,7 @@ using onDisconnectedCallback = std::function<void(const std::shared_ptr<TCPConne
 
 class TCPServer {
 public:
-    TCPServer() = default;
+    TCPServer();
     virtual ~TCPServer() = default;
 
     bool init(int32_t threadNum, const std::string& ip, uint16_t port);
@@ -30,6 +30,10 @@ public:
 
     void setDisconnectedCallback(onDisconnectedCallback&& callback) {
         m_disconnectedCallback = std::move(callback);
+    }
+
+    EventLoop& getBaseEventLoop() {
+        return m_baseEventLoop;
     }
 
 private:

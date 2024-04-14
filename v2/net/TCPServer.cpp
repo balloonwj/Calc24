@@ -3,6 +3,10 @@
 #include <functional>
 #include <iostream>
 
+TCPServer::TCPServer() : m_baseEventLoop(true) {
+
+}
+
 bool TCPServer::init(int32_t threadNum, const std::string& ip, uint16_t port) {
     m_threadPool.start(threadNum);
 
@@ -28,6 +32,9 @@ void TCPServer::uninit() {
 }
 
 void TCPServer::start() {
+    std::cout << "base EventLoop threadID " << std::this_thread::get_id() << std::endl;
+    m_baseEventLoop.setThreadID(std::this_thread::get_id());
+
     m_baseEventLoop.run();
 }
 

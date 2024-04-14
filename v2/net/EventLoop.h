@@ -25,7 +25,7 @@ enum class IOMultiplexType {
 
 class EventLoop final : public ITimerService {
 public:
-    EventLoop() = default;
+    EventLoop(bool isBaseLoop = false) : m_isBaseLoop(isBaseLoop) {}
     ~EventLoop();
 
 public:
@@ -38,6 +38,8 @@ public:
     void setThreadID(const std::thread::id& threadID);
     const std::thread::id& getThreadID() const;
 
+    bool isCallableInOwnerThread() const;
+
     void registerReadEvent(int fd, IEventDispatcher* eventDispatcher, bool readEvent);
     void registerWriteEvent(int fd, IEventDispatcher* eventDispatcher, bool writeEvent);
     void unregisterReadEvent(int fd, IEventDispatcher* eventDispatcher, bool readEvent);
@@ -46,7 +48,7 @@ public:
 
     //定时器相关接口
     virtual int64_t addTimer(int32_t intervalMs, bool repeated, int64_t repeatedCount, TimerTask timerTask) override;
-    virtual bool removeTimer(int64_t timerID) override;
+    virtual void removeTimer(int64_t timerID) override;
 
 private:
     bool createWakeupfd();
@@ -55,10 +57,15 @@ private:
 
     void doOtherTasks();
 
+    void addTimerInternal(std::shared_ptr<Timer> spTimer);
+    void removeTimerInternal(int64_t timerID);
+
 private:
     bool                                    m_running{ false };
     int                                     m_epollfd;
     int                                     m_wakeupfd;
+
+    bool                                    m_isBaseLoop{ false };
 
     std::unique_ptr<IIOMultiplex>           m_spIOMultiplex;
     std::thread::id                         m_threadID;

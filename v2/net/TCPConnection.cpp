@@ -24,42 +24,8 @@ bool TCPConnection::startRead() {
 }
 
 bool TCPConnection::send(const char* buf, int bufLen) {
-    m_sendBuf.append(buf, bufLen);
-
-    while (true) {
-        int n = ::send(m_fd, m_sendBuf, m_sendBuf.remaining(), 0);
-        if (n == 0) {
-            //对端关闭了连接
-            //TODO: 我们也关闭连接
-            onClose();
-            return false;
-        } else if (n < 0) {
-            if (errno == EINTR) {
-                continue;;
-            } else if (errno == EWOULDBLOCK || errno == EAGAIN) {
-                //当前由于TCP窗口太小，数据发不出去了
-                m_writeCallback();
-
-                registerWriteEvent();
-
-                return true;
-            }
-
-            //其他情况出错了，关闭连接
-            onClose();
-            return false;
-        }
-
-        //发送成功了
-        m_sendBuf.erase(n);
-        if (m_sendBuf.isEmpty()) {
-            return true;
-        }
-    }
-
-    //return false;
+    return send(std::string(buf, bufLen));
 }
-
 
 bool TCPConnection::send(const std::string& buf) {
     //当前调用线程和当前TCPConnection属于同一个线程，则直接发送；
@@ -72,7 +38,7 @@ bool TCPConnection::send(const std::string& buf) {
             << ", threadID "
             << m_spEventLoop->getThreadID()
             << std::endl;
-        return send(buf.c_str(), buf.length());
+        return sendInternal(buf.c_str(), buf.length());
     } else {
         m_spEventLoop->addTask(std::bind(static_cast<bool(TCPConnection::*)(const std::string&)>(&TCPConnection::send), this, buf));
         //这里无法编译通过的原因是：
@@ -160,6 +126,43 @@ void TCPConnection::onClose() {
 void TCPConnection::enableReadWrite(bool read, bool write) {
     m_enableRead = read;
     m_enableWrite = write;
+}
+
+bool TCPConnection::sendInternal(const char* buf, int bufLen) {
+    m_sendBuf.append(buf, bufLen);
+
+    while (true) {
+        int n = ::send(m_fd, m_sendBuf, m_sendBuf.remaining(), 0);
+        if (n == 0) {
+            //对端关闭了连接
+            //TODO: 我们也关闭连接
+            onClose();
+            return false;
+        } else if (n < 0) {
+            if (errno == EINTR) {
+                continue;;
+            } else if (errno == EWOULDBLOCK || errno == EAGAIN) {
+                //当前由于TCP窗口太小，数据发不出去了
+                m_writeCallback();
+
+                registerWriteEvent();
+
+                return true;
+            }
+
+            //其他情况出错了，关闭连接
+            onClose();
+            return false;
+        }
+
+        //发送成功了
+        m_sendBuf.erase(n);
+        if (m_sendBuf.isEmpty()) {
+            return true;
+        }
+    }
+
+    //return false;
 }
 
 void TCPConnection::registerWriteEvent() {

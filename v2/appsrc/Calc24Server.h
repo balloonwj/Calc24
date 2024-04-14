@@ -27,4 +27,6 @@ private:
     //id=>std::shared_ptr<Calc24Session>
     std::map<int32_t, std::shared_ptr<Calc24Session>>   m_sessions;
     std::vector<std::shared_ptr<Calc24Session>>         m_pendingToDeleteSessions;
+
+    int64_t                                             m_checkHandupTimerID{ 0 };
 };

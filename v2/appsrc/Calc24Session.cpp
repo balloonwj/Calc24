@@ -3,6 +3,7 @@
 #include <functional>
 #include <iostream>
 #include <sstream>
+#include <string.h>
 
 #include "Calc24Server.h"
 
@@ -65,8 +66,35 @@ void Calc24Session::sendWelcomeMsg() {
 
 void Calc24Session::notifyUserHandup() {
     m_spConn->getEventLoop()->addTimer(5000, true, 0, [this](int64_t timerID) -> void {
-        m_spConn->send("please handup...\n");
+        if (m_status == SESSION_STATUS_CONNECTED)
+            m_spConn->send("please handup...\n");
+        else {
+            m_spConn->getEventLoop()->removeTimer(timerID);
+        }
         });
+}
+
+void Calc24Session::initCards() {
+    static constexpr char allCards[] = { 'A', '2', '3', '4', '5', '6', '7', '8', '9', 'X', 'J', 'Q', 'K', 'w', 'W' };
+    static constexpr int allCardsCount = sizeof(allCards) / sizeof(allCards[0]);
+
+    int index1 = rand() % allCardsCount;
+    int index2 = rand() % allCardsCount;
+    int index3 = rand() % allCardsCount;
+    int index4 = rand() % allCardsCount;
+
+    char newCards[24];
+    sprintf(newCards, "Your cards is: %c %c %c %c\n",
+        allCards[index1],
+        allCards[index2],
+        allCards[index3],
+        allCards[index4]);
+
+    //std::string strNewCards(newCards);
+
+    m_spConn->send(newCards, strlen(newCards));
+
+    m_status = SESSION_STATUS_CARDSINITED;
 }
 
 void Calc24Session::forceClose() {
@@ -98,6 +126,19 @@ DecodePackageResult Calc24Session::decodePackage(ByteBuffer& recvBuf) {
 }
 
 bool Calc24Session::processPackage(const std::string& package) {
+    if (package.empty())
+        return true;
+
+    if (package[0] != '!') {
+        //聊天消息
+        return processChatMsg(package);
+    } else {
+        //特殊指令
+        return processCmd(package);
+    }
+}
+
+bool Calc24Session::processChatMsg(const std::string& package) {
     std::cout << "fd " << m_spConn->fd() << ", client[" << m_id << "] says: " << package << std::endl;
 
     std::ostringstream msgWithPrefix;
@@ -107,5 +148,18 @@ bool Calc24Session::processPackage(const std::string& package) {
     msgWithPrefix << package;
     m_pServer->sendAll(msgWithPrefix.str(), false, m_id);
 
+    //TODO: 这个返回值没意义，可以改成void
     return true;
+}
+
+bool Calc24Session::processCmd(const std::string& package) {
+    //!ready 表示已经举手
+    //!2 3 4 5 表示对24点游戏的结果进行计算
+    if (package.substr(0, 6) == "!ready") {
+        m_status = SESSION_STATUS_HANDUP;
+        return true;
+    }
+
+
+    return false;
 }
