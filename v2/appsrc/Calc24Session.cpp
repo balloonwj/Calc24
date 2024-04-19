@@ -64,9 +64,9 @@ void Calc24Session::sendWelcomeMsg() {
     m_spConn->send(welcomeMsg);
 }
 
-void Calc24Session::notifyUserHandup() {
+void Calc24Session::notifyUserToBeReady() {
     m_spConn->getEventLoop()->addTimer(5000, true, 0, [this](int64_t timerID) -> void {
-        if (m_status == SESSION_STATUS_CONNECTED)
+        if (m_status == SESSION_STATUS_IDLE)
             m_spConn->send("please handup...\n");
         else {
             m_spConn->getEventLoop()->removeTimer(timerID);
@@ -74,31 +74,23 @@ void Calc24Session::notifyUserHandup() {
         });
 }
 
-void Calc24Session::initCards() {
-    static constexpr char allCards[] = { 'A', '2', '3', '4', '5', '6', '7', '8', '9', 'X', 'J', 'Q', 'K', 'w', 'W' };
-    static constexpr int allCardsCount = sizeof(allCards) / sizeof(allCards[0]);
+void Calc24Session::sendCards(const std::string& cards, int64_t deskID) {
+    m_spConn->send(cards);
 
-    int index1 = rand() % allCardsCount;
-    int index2 = rand() % allCardsCount;
-    int index3 = rand() % allCardsCount;
-    int index4 = rand() % allCardsCount;
+    m_status = SESSION_STATUS_IN_GAME;
 
-    char newCards[24];
-    sprintf(newCards, "Your cards is: %c %c %c %c\n",
-        allCards[index1],
-        allCards[index2],
-        allCards[index3],
-        allCards[index4]);
-
-    //std::string strNewCards(newCards);
-
-    m_spConn->send(newCards, strlen(newCards));
-
-    m_status = SESSION_STATUS_CARDSINITED;
+    m_deskID = deskID;
 }
 
 void Calc24Session::forceClose() {
     m_spConn->onClose();
+}
+
+void Calc24Session::resetToIdle() {
+    m_deskID = 0;
+    m_status = SESSION_STATUS_IDLE;
+
+    notifyUserToBeReady();
 }
 
 int Calc24Session::generateID() {
@@ -146,7 +138,7 @@ bool Calc24Session::processChatMsg(const std::string& package) {
     msgWithPrefix << m_id;
     msgWithPrefix << "] Says: ";
     msgWithPrefix << package;
-    m_pServer->sendAll(msgWithPrefix.str(), false, m_id);
+    m_pServer->sendAll(msgWithPrefix.str(), false, m_id, m_status, m_deskID);
 
     //TODO: 这个返回值没意义，可以改成void
     return true;
@@ -156,8 +148,27 @@ bool Calc24Session::processCmd(const std::string& package) {
     //!ready 表示已经举手
     //!2 3 4 5 表示对24点游戏的结果进行计算
     if (package.substr(0, 6) == "!ready") {
-        m_status = SESSION_STATUS_HANDUP;
+        m_status = SESSION_STATUS_READY;
         return true;
+    }
+
+    if (package == "!xyz\n") {
+        //假设是正确的答案
+        //告诉当前玩家你的结果是正确的，结束游戏
+        std::string rightgAnwser = "Congratulations! Your answer is right! Game Over!\n";
+        m_spConn->send(rightgAnwser);
+        //告诉其他玩家，已经有玩家算出结果，结束游戏
+
+        std::string notifyOthersGameOverMsg = "One player has already given the right answer! Game Over!\n";
+        m_pServer->sendAll(notifyOthersGameOverMsg, false, m_id, m_status, m_deskID);
+
+        //让所有当前桌子上的玩家回到空闲状态
+        m_pServer->resetSessionToIdleByDeskID(m_deskID);
+
+    } else {
+        //错误的答案
+        std::string wrongAnwser = "Your answer is wrong, please try again.\n";
+        m_spConn->send(wrongAnwser);
     }
 
 

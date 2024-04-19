@@ -4,8 +4,10 @@
 #include <chrono>
 
 Timer::Timer(int32_t intervalMs, bool repeated,
-    int64_t repeatedCount, TimerTask timerTask) : m_intervalMs(intervalMs),
+    int64_t repeatedCount, TimerTask timerTask,
+    TimerMode mode/* = TimerMode::TimerModeFixedInterval*/) : m_intervalMs(intervalMs),
     m_repeated(repeated),
+    m_mode(mode),
     m_repeatedCount(repeatedCount),
     m_timerTask(timerTask) {
 
@@ -17,11 +19,26 @@ Timer::Timer(int32_t intervalMs, bool repeated,
     m_id = Timer::generateTimerID();
 }
 
-void Timer::doTimer(int64_t timerID) {
+void Timer::doTimer(int64_t timerID, int64_t nowMs) {
     if (m_repeated) {
-        m_nextTriggeredTimeMs += m_intervalMs;
+        if (m_mode == TimerMode::TimerModeFixedInterval) {
+            //m_intervalMs=1s => 2s
+            //m_nextTriggeredTimeMs = 1 
+            //nowMs = 1 => 3s
+            //
+            m_nextTriggeredTimeMs += m_intervalMs;
+        } else {
+            m_nextTriggeredTimeMs = nowMs + m_intervalMs;
+        }
+
     }
 
+    //对于TimerModeFixedInterval模式：
+    //假设定时器的时间间隔是1s，某次执行定时器回调花了2s，下一次触发的时候当前时间是第3秒，需要连续执行2次定时器回调函数
+    // 1s、(2s）、3s
+    //对于TimerModeFixedDelay模式：
+    //假设定时器的时间间隔是1s，某次执行定时器回调花了2s，下一次触发的时候当前时间是第3秒，需要连续执行1次定时器回调函数
+    //1s、2s（3s）、5s
     m_timerTask(timerID);
 }
 

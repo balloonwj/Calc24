@@ -14,12 +14,18 @@ public:
     bool init(int32_t threadNum, const std::string& ip = "", uint16_t port = 8888);
     void uninit();
 
-    void sendAll(const std::string& msg, bool includeSelf, int32_t id);
+    void sendAll(const std::string& msg, bool includeSelf, int32_t id, int status, int64_t deskID);
+
+    void resetSessionToIdleByDeskID(int64_t deskID);
 
     void onDisconnected(int32_t id);
 
 private:
     void onConnected(std::shared_ptr<TCPConnection>& spConn);
+
+    void generateCards(std::string& newCards, int64_t& deskID);
+
+    static int64_t generateDeskID();
 
 
 private:

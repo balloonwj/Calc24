@@ -15,7 +15,9 @@
 #include "Timer.h"
 #include "WakeupEventDispatcher.h"
 
-using CustomTask = std::function<bool(const std::string&)>;
+ //using CustomTask = std::function<bool(const std::string&)>;
+
+using CustomTask = std::function<void()>;
 
 enum class IOMultiplexType {
     IOMultiplexTypeSelect,
@@ -47,7 +49,8 @@ public:
     void unregisterAllEvents(int fd, IEventDispatcher* eventDispatcher);
 
     //定时器相关接口
-    virtual int64_t addTimer(int32_t intervalMs, bool repeated, int64_t repeatedCount, TimerTask timerTask) override;
+    virtual int64_t addTimer(int32_t intervalMs, bool repeated, int64_t repeatedCount,
+        TimerTask timerTask, TimerMode mode = TimerMode::TimerModeFixedInterval) override;
     virtual void removeTimer(int64_t timerID) override;
 
 private:
@@ -77,4 +80,8 @@ private:
 
     std::vector<std::shared_ptr<Timer>>     m_timers;
     std::mutex                              m_mutexTimers;
+
+    bool                                    m_isCheckTimers{ false };
+    std::vector<std::shared_ptr<Timer>>     m_pendingAddTimers;
+    std::vector<int64_t>                    m_pendingRemoveTimers;
 };

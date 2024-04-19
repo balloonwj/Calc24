@@ -7,7 +7,8 @@
 class Timer
 {
 public:
-    Timer(int32_t intervalMs, bool repeated, int64_t repeatedCount, TimerTask timerTask);
+    Timer(int32_t intervalMs, bool repeated, int64_t repeatedCount,
+        TimerTask timerTask, TimerMode mode = TimerMode::TimerModeFixedInterval);
     ~Timer() = default;
 
     int64_t id() const {
@@ -18,7 +19,7 @@ public:
         return m_nextTriggeredTimeMs;
     }
 
-    void doTimer(int64_t timerID);
+    void doTimer(int64_t timerID, int64_t nowMs);
 
 private:
     Timer(const Timer& rhs) = delete;
@@ -34,6 +35,7 @@ private:
     int64_t     m_id;
     int32_t     m_intervalMs; //定时器时间间隔
     bool        m_repeated;
+    TimerMode   m_mode;
     int64_t     m_repeatedCount;
     TimerTask   m_timerTask;
 

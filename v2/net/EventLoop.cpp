@@ -104,11 +104,12 @@ void EventLoop::unregisterAllEvents(int fd, IEventDispatcher* eventDispatcher) {
     m_spIOMultiplex->unregisterAllEvents(fd, eventDispatcher);
 }
 
-int64_t EventLoop::addTimer(int32_t intervalMs, bool repeated, int64_t repeatedCount, TimerTask timerTask) {
+int64_t EventLoop::addTimer(int32_t intervalMs, bool repeated, int64_t repeatedCount, TimerTask timerTask,
+    TimerMode mode/* = TimerMode::TimerModeFixedInterval*/) {
     //对传入的参数进行校验
 
     auto spTimer = std::make_shared<Timer>(intervalMs,
-        repeated, repeatedCount, timerTask);
+        repeated, repeatedCount, timerTask, mode);
 
     addTimerInternal(spTimer);
 
@@ -135,11 +136,27 @@ void EventLoop::checkAndDoTimers() {
     int64_t nowMs = std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::system_clock::now().time_since_epoch()).count();;
 
+    m_isCheckTimers = true;
     //std::lock_guard<decltype(m_mutexTimers)> scopedLock(m_mutexTimers);
     for (auto iter = m_timers.begin(); iter != m_timers.end(); iter++) {
-        if (nowMs >= (*iter)->nextTriggeredTimeMs()) {
-            (*iter)->doTimer((*iter)->id());
+        while (nowMs >= (*iter)->nextTriggeredTimeMs()) {
+            //std::cout << "checkAndDoTimers, timerID " << (*iter)->id()
+            //    << " threadID " << std::this_thread::get_id() << std::endl;
+
+            (*iter)->doTimer((*iter)->id(), nowMs);
         }
+    }
+
+    m_isCheckTimers = false;
+
+    if (!m_pendingRemoveTimers.empty()) {
+        for (auto& timerID : m_pendingRemoveTimers)
+            removeTimerInternal(timerID);
+    }
+
+    if (!m_pendingAddTimers.empty()) {
+        for (auto& spTimer : m_pendingAddTimers)
+            addTimerInternal(spTimer);
     }
 }
 
@@ -152,13 +169,20 @@ void EventLoop::doOtherTasks() {
     }
 
     for (auto& task : tasks) {
-        task("");
+        task();
     }
 }
 
 void EventLoop::addTimerInternal(std::shared_ptr<Timer> spTimer) {
     if (isCallableInOwnerThread()) {
-        m_timers.push_back(spTimer);
+        if (m_isCheckTimers) {
+            m_pendingAddTimers.push_back(spTimer);
+        } else {
+            std::cout << "addTimerInternal, timerID " << spTimer->id()
+                << " threadID " << std::this_thread::get_id() << std::endl;
+
+            m_timers.push_back(spTimer);
+        }
     } else {
         addTask(std::bind(&EventLoop::addTimerInternal, this, spTimer));
     }
@@ -166,10 +190,18 @@ void EventLoop::addTimerInternal(std::shared_ptr<Timer> spTimer) {
 
 void EventLoop::removeTimerInternal(int64_t timerID) {
     if (isCallableInOwnerThread()) {
-        for (auto iter = m_timers.begin(); iter != m_timers.end(); iter++) {
-            if ((*iter)->id() == timerID) {
-                m_timers.erase(iter);
-                return;
+        if (m_isCheckTimers) {
+            m_pendingRemoveTimers.push_back(timerID);
+        } else {
+            for (auto iter = m_timers.begin(); iter != m_timers.end(); iter++) {
+                if ((*iter)->id() == timerID) {
+
+                    std::cout << "removeTimerInternal, timerID " << timerID
+                        << " threadID " << std::this_thread::get_id() << std::endl;
+
+                    m_timers.erase(iter);
+                    return;
+                }
             }
         }
     } else {
